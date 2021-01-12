@@ -1,0 +1,16 @@
+<!--필드 오류-->
+{% if form.errors.items() %}
+{% for field, errors in form.errors.items() %}
+<div class="alert alert-danger" role="alert">
+    <strong>{{ form[field].label }}</strong>: {{ ','.join(errors) }}
+</div>
+{% endfor %}
+{% endif %}
+<!--flash 오류-->
+{% if get_flashed_messages() %}
+{% for message in get_flashed_messages() %}
+<div class="alert alert-danger" role="alert">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}

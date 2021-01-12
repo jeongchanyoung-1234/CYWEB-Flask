@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-3">
+    <form method='post' class="post-form">
+        {{ form.csrf_token }}
+        {% include 'form_errors.html' %}
+        <div class="form-group">
+            <label for="username">사용자 이름</label>
+            <input type="text" id="username" name="username" value="{{ form.username.data or '' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password1" value="{{ form.password1.data or '' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="re-password">비밀번호 확인</label>
+            <input type="password" id="re-password" name="password2" value="{{ form.password2.data or '' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" value="{{ form.email.data or '' }}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">생성하기</button>
+    </form>
+</div>
+
+{% endblock %}

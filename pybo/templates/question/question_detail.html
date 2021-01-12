@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-3">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-danger" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    <!-- 질문란start -->
+    <h2 class="border-bottom py-2">{{ question.subject }}</h2>
+    
+    <!-- 질문추천란start -->
+    <div class="row my-3">
+        <div class="col-1">
+            <div class="bg-light text-center p-3 border font-weight-bolder mb-1">{{ question.voter|length }}</div>
+            <a href="#" data-uri="{{ url_for('vote.question', question_id=question.id) }}"
+               class="recommend btn btn-sm btn-secondary btn-block my-1">추천</a>
+        </div>
+
+    <!-- 질문추천란end -->
+    <div class="col-11">
+        <div class="card my-3">
+            <div class="card-body"> 
+                <div class="card-text" style="white-space: pre-line;">{{ question.content|markdown }}</div>
+                <div class="text-right">
+                    <div class="badge badge-light p-2 text-left">
+                        <div class="mb-2">{{ question.user.username }}</div>
+                        <div>작성일시: {{ question.create_date|datetime }}</div>
+                        {% if question.modify_date %}
+                        <div>수정일시: {{ question.modify_date|datetime }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- 수정,삭제버튼start -->
+            {% if g.user == question.user %}
+            <div class="form-inline">
+                <div class="my-3 pl-2">
+                    <a href="{{ url_for('question.modify', question_id=question.id) }}"
+                        class="btn btn-success btn-sm">수정</a>
+                </div>
+                <div class="my-3 pl-2">
+                    <a href="#" data-uri="{{ url_for('question.delete', question_id=question.id) }}"
+                        class="delete btn btn-success btn-sm">삭제</a>
+                </div>
+            </div>
+            {% endif %}
+            <!-- 수정,삭제버튼end -->
+            <!-- 질문댓글 start -->
+            {% if question.comment_set|length > 0 %}
+            <div class="card m-3">
+                {% for comment in question.comment_set %}
+                <div class="comment p-2 text-muted">
+                    <span style="white-space: pre-line;">{{ comment.content }}</span>
+                    <span class="small">
+                        - {{ comment.user.username }}, {{ comment.create_date|datetime }}
+                        {% if comment.modify_date %}
+                        (수정: {{ comment.modify_date|datetime }})
+                        {% endif %}
+                    </span>
+                    {% if g.user == comment.user %}
+                    <a href="{{ url_for('comment.modify_question_comment', comment_id=comment.id) }}" class="small">수정</a>
+                    <a href="#" class="small delete"
+                        data-uri="{{ url_for('comment.delete_question_comment', comment_id=comment.id) }}">삭제</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div>
+                <a href="{{ url_for('comment.create_question_comment', question_id=question.id) }}"
+                    class="medium p-2"><small>댓글
+                        추가..</small></a>
+            </div>
+            <!-- 질문 댓글 end -->
+        </div>
+    </div>
+</div>
+    
+         <!-- 질문란end -->
+         <!-- 답변란start-->
+
+         <h5 class="border-bottom-my-3.py-2">{{ question.answer_set|length }}개의 답변이 있습니다.</h5>
+         {% for answer in question.answer_set %}
+         <a name="answer_{{ answer.id }}"></a>
+         <!-- 답변추천란start -->
+         <div class="row my-3">
+             <div class="col-1">
+                 <div class="bg-light text-center p-3 border font-weight-bolder mb-1">
+                     {{ answer.voter|length }}</div>
+                 <a href="#" data-uri="{{ url_for('vote.answer', answer_id=answer.id) }}"
+                     class="recommend btn btn-sm btn-secondary btn-block my-1">추천</a>
+             </div>
+             <!-- 답변추천란end -->
+             <div class="col-11">
+                 <div class="card my-3">
+                     <div class="card-body">
+                         <div class="card-text" style="white-space: pre-line">{{ answer.content|markdown }}</div>
+                         <div class="text-right">
+                             <div class="badge badge-light p-2 text-left">
+                                 <div class="mb-2">{{ question.user.username }}</div>
+                                 <div>작성일시: {{ answer.create_date|datetime }}</div>
+                                 {% if answer.modify_date %}
+                                 <div>수정일시: {{ answer.modify_date|datetime }}</div>
+                                 {% endif %}
+                             </div>
+                         </div>
+                     </div>
+                     <!-- 답변수정삭제start -->
+                     {% if g.user == answer.user %}
+                     <div class="form-inline pl-2">
+                         <div class="my-3">
+                             <a href="{{ url_for('answer.modify', answer_id=answer.id) }}"
+                                 class="btn btn-success btn-sm">수정</a>
+                         </div>
+                         <div class="my-3 pl-2">
+                             <a href="#" data-uri="{{ url_for('answer.delete', answer_id=answer.id) }}"
+                                 class="delete btn btn-success btn-sm">삭제</a>
+                         </div>
+                     </div>
+                     {% endif %}
+                     <!-- 답변수정삭제end -->
+
+                     <!-- 답변댓글start -->
+                     {% if answer.comment_set|length > 0 %}
+                     <div class="card m-3">
+                         {% for comment in answer.comment_set %}
+                         <div class="comment p-2 text-muted">
+                             <span style="white-space: pre-line;">{{ comment.content }}</span>
+                             <span class="small">
+                                 - {{ comment.user.username }}, {{ comment.create_date|datetime }}
+                                 {% if comment.modify_date %}
+                                 (수정: {{ comment.modify_date|datetime }})
+                                 {% endif %}
+                             </span>
+                             {% if g.user == comment.user %}
+                             <a href="{{ url_for('comment.modify_answer_comment', comment_id=comment.id) }}"
+                                 class="small">수정</a>
+                             <a href="#" class="small delete"
+                                 data-uri="{{ url_for('comment.delete_answer_comment', comment_id=comment.id) }}">삭제</a>
+                             {% endif %}
+                         </div>
+                         {% endfor %}
+                     </div>
+                     {% endif %}
+                     <div>
+                         <a href="{{ url_for('comment.create_answer_comment', answer_id=answer.id) }}"
+                             class="medium p-2"><small>댓글
+                                 추가..</small></a>
+                     </div>
+                    </div>
+                </div>
+            </div>
+               
+                     {% endfor %}
+                 <!-- 답변댓글end -->
+                 
+
+                 <!-- 답변란end -->
+            
+<!--    답변등록양식start-->
+    <form action="{{ url_for('answer.create', question_id=question.id) }}" method="post" class="my-3">
+        {{ form.csrf_token }}
+        {% include 'form_errors.html'  %}
+        <div class="form-group">
+            <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="10"></textarea>
+        </div>
+        <input type="submit" value="답변등록" class="btn btn-primary">
+    </form>
+</div>
+<!-- 답변등록양식end -->
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $(".delete").on('click', function() {
+        if(confirm('정말로 삭제하시겠습니까?')) {
+            location.href = $(this).data('uri');
+        }
+    });
+    $(".recommend").on('click', function() {
+        if(confirm('정말로 추천하시겠습니까?')) {
+            location.href = $(this).data('uri');
+        }
+    });
+    
+});
+</script>
+{% endblock %}

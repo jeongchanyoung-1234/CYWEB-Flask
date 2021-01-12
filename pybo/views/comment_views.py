@@ -1,0 +1,100 @@
+from flask import Blueprint, url_for, request, flash, render_template, g
+from werkzeug.utils import redirect
+from pybo.views.auth_views import login_required
+from pybo.forms import CommentForm
+from pybo.models import Question, Comment, Answer
+from datetime import datetime
+
+from pybo import db
+
+bp = Blueprint('comment', __name__, url_prefix='/comment')
+
+
+@bp.route('/create/question/<int:question_id>', methods=('POST', 'GET'))
+@login_required
+def create_question_comment(question_id):
+    form = CommentForm()
+    question = Question.query.get_or_404(question_id)
+    if request.method == 'POST' and form.validate_on_submit():
+        comment = Comment(user=g.user, content=form.content.data,
+                          create_date=datetime.now(), question=question)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('question.detail', question_id=question.id))
+    return render_template('comment/comment_form.html', form=form)
+
+
+@bp.route('/modify/question/<int:comment_id>', methods=('GET', 'POST'))
+@login_required
+def modify_question_comment(comment_id):
+    form = CommentForm()
+    comment = Comment.query.get_or_404(comment_id)
+    if g.user != comment.user:
+        flash('수정 권한이 없습니다')
+        return redirect(url_for('question.detail', question_id=comment.question.id))
+    if request.method == 'POST' and form.validate_on_submit():
+        form.populate_obj(comment)
+        comment.modify_date = datetime.now()
+        db.session.commit()
+        return redirect(url_for('question.detail', question_id=comment.question.id))
+    else:
+        form = CommentForm(obj=comment)
+    return render_template('comment/comment_form.html', form=form)
+
+
+@bp.route('/delete/question/<int:comment_id>')
+@login_required
+def delete_question_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    question_id = comment.answer.question.id
+    if g.user != comment.user:
+        flash('삭제 권한이 없습니다.')
+        return redirect(url_for('question.detail', question_id=question_id))
+    db.session.delete(comment)
+    db.session.commit()
+    return redirect(url_for('question.detail', question_id=question_id))
+
+
+@bp.route('/create/answer/<int:answer_id>', methods=('POST', 'GET'))
+@login_required
+def create_answer_comment(answer_id):
+    form = CommentForm()
+    answer = Answer.query.get_or_404(answer_id)
+    if request.method == 'POST' and form.validate_on_submit():
+        comment = Comment(user=g.user, content=form.content.data,
+                          create_date=datetime.now(), answer=answer)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('question.detail', question_id=answer.question.id))
+    return render_template('comment/comment_form.html', form=form)
+
+
+@bp.route('/modify/answer/<int:comment_id>', methods=('GET', 'POST'))
+@login_required
+def modify_answer_comment(comment_id):
+    form = CommentForm()
+    comment = Comment.query.get_or_404(comment_id)
+    if g.user != comment.user:
+        flash('수정 권한이 없습니다')
+        return redirect(url_for('question.detail', question_id=comment.answer.id))
+    if request.method == 'POST' and form.validate_on_submit():
+        form.populate_obj(comment)
+        comment.modify_date = datetime.now()
+        db.session.commit()
+        return redirect(url_for('question.detail', question_id=comment.answer.question.id))
+    else:
+        form = CommentForm(obj=comment)
+    return render_template('comment/comment_form.html', form=form)
+
+
+@bp.route('/delete/answer/<int:comment_id>')
+@login_required
+def delete_answer_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    question_id = comment.answer.question.id
+    if g.user != comment.user:
+        flash('삭제 권한이 없습니다.')
+        return redirect(url_for('question.detail', question_id=question_id))
+    db.session.delete(comment)
+    db.session.commit()
+    return redirect(url_for('question.detail', question_id=question_id))
